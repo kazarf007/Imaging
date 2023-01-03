@@ -60,6 +60,8 @@ public class IMGView extends FrameLayout implements Runnable, ScaleGestureDetect
 
     private static final boolean DEBUG = true;
 
+    private boolean needDrawPath = false ;
+
     {
         // 涂鸦画刷
         mDoodlePaint.setStyle(Paint.Style.STROKE);
@@ -228,7 +230,7 @@ public class IMGView extends FrameLayout implements Runnable, ScaleGestureDetect
         mImage.onDrawDoodles(canvas);
         if (mImage.getMode() == IMGMode.DOODLE && !mPen.isEmpty()) {
             mDoodlePaint.setColor(mPen.getColor());
-            mDoodlePaint.setStrokeWidth(IMGPath.BASE_DOODLE_WIDTH * mImage.getScale());
+            mDoodlePaint.setStrokeWidth(IMGPath.BASE_DOODLE_WIDTH);
             canvas.save();
             RectF frame = mImage.getClipFrame();
             canvas.rotate(-mImage.getRotate(), frame.centerX(), frame.centerY());
@@ -424,6 +426,7 @@ public class IMGView extends FrameLayout implements Runnable, ScaleGestureDetect
 
     private boolean onPathMove(MotionEvent event) {
         if (mPen.isIdentity(event.getPointerId(0))) {
+            needDrawPath = true ;
             mPen.lineTo(event.getX(), event.getY());
             invalidate();
             return true;
@@ -435,7 +438,10 @@ public class IMGView extends FrameLayout implements Runnable, ScaleGestureDetect
         if (mPen.isEmpty()) {
             return false;
         }
-        mImage.addPath(mPen.toPath(), getScrollX(), getScrollY());
+        if (needDrawPath) {
+            mImage.addPath(mPen.toPath(mImage.getScale()), getScrollX(), getScrollY());
+            needDrawPath = false;
+        }
         mPen.reset();
         invalidate();
         return true;
@@ -632,8 +638,9 @@ public class IMGView extends FrameLayout implements Runnable, ScaleGestureDetect
             return this.path.isEmpty();
         }
 
-        IMGPath toPath() {
-            return new IMGPath(new Path(this.path), getMode(), getColor(), getWidth());
+        IMGPath toPath(float scale) {
+            return new IMGPath(new Path(this.path), getMode(), getColor(),
+                    getMode() == IMGMode.DOODLE ? (IMGPath.BASE_DOODLE_WIDTH / scale) : IMGPath.BASE_MOSAIC_WIDTH);
         }
     }
 }

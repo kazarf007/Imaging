@@ -85,7 +85,7 @@ public class IMGPath {
     public void onDrawDoodle(Canvas canvas, Paint paint) {
         if (mode == IMGMode.DOODLE) {
             paint.setColor(color);
-            paint.setStrokeWidth(BASE_DOODLE_WIDTH);
+            paint.setStrokeWidth(width);
             // rewind
             canvas.drawPath(path, paint);
         }
